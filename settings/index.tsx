@@ -43,7 +43,7 @@ const debug = false;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function PureSettings(props: SettingsComponentProps) {
-	const donated = props.settings.donated === 'true';
+	const donated = true;
 	const autoRotate = props.settings.autoRotate === 'true';
 
 	return (

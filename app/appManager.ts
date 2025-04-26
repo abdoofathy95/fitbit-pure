@@ -76,7 +76,6 @@ export const enum ActivityViews {
 	Date = 0,
 	Activity1 = 1,
 	Activity2 = 2,
-	Donate = 3,
 }
 
 export interface ActivityViewChangeEvent {
@@ -107,7 +106,6 @@ export class AppManager {
 		return this._onDidTriggerAppEvent.event;
 	}
 
-	private donateDisposable: Disposable | undefined;
 	private mouseClickCancelTimer: number | undefined;
 	private mouseDownDisposable: Disposable | undefined;
 	private mouseDownTimer: number | undefined;
@@ -120,11 +118,7 @@ export class AppManager {
 	}
 
 	get donated(): boolean {
-		return configuration.get('donated');
-	}
-
-	set donated(value: boolean) {
-		configuration.set('donated', value);
+		return true;
 	}
 
 	private _editing = false;
@@ -134,12 +128,6 @@ export class AppManager {
 
 	set editing(value: boolean) {
 		if (this._editing === value) return;
-
-		if (value && !this.donated) {
-			void this.showDonateView();
-
-			return;
-		}
 
 		backgrounds = undefined;
 		points = undefined;
@@ -177,7 +165,7 @@ export class AppManager {
 		// this.demo();
 	}
 
-	async reload(donated: boolean) {
+	async reload() {
 		await document.location.replace('./resources/index.view');
 
 		this.$trigger = document.getElementById<RectElement>('trigger')!;
@@ -191,87 +179,7 @@ export class AppManager {
 			views[i].paused = false;
 		}
 
-		if (donated) {
-			this.donated = true;
-		}
-
 		this.onConfigurationChanged();
-	}
-
-	async showDonateView() {
-		const views = this.views!;
-		let i = views.length;
-		while (i--) {
-			views[i].paused = true;
-		}
-
-		let donated = false;
-		try {
-			// eslint-disable-next-line no-async-promise-executor
-			donated = await new Promise<boolean>(async resolve => {
-				await document.location.replace('./resources/donate.view');
-
-				const disposable = this.onDidTriggerAppEvent(e => {
-					if (e.type === 'display' && (!e.display.on || e.display.aodActive)) {
-						disposable.dispose();
-
-						resolve(false);
-					}
-				});
-
-				const $backButton = document.getElementById<TextButtonElement>('back-button')!;
-				const $nextButton = document.getElementById<TextButtonElement>('next-button')!;
-
-				const $tumblers = [
-					document.getElementById<TumblerViewElement>('code1')!,
-					document.getElementById<TumblerViewElement>('code2')!,
-					document.getElementById<TumblerViewElement>('code3')!,
-				];
-
-				$backButton.addEventListener('click', () => {
-					const $steps = document.getElementsByClassName<GroupElement>('donate-step')!;
-					if ($steps[0].style.display === 'none') {
-						$steps[0].style.display = 'inline';
-						$steps[1].style.display = 'none';
-
-						$nextButton.text = 'Next';
-
-						return;
-					}
-
-					resolve(false);
-				});
-
-				$nextButton.addEventListener('click', () => {
-					const $steps = document.getElementsByClassName<GroupElement>('donate-step')!;
-					if ($steps[0].style.display !== 'none') {
-						$steps[0].style.display = 'none';
-						$steps[1].style.display = 'inline';
-
-						$nextButton.text = 'Done';
-
-						return;
-					}
-
-					const date = new Date();
-					const value = `${date.getUTCFullYear().toString().substr(2)}${date.getUTCMonth().toString(16)}`;
-					if ($tumblers.every(($, index) => $.value.toString(16) === value[index])) {
-						disposable.dispose();
-
-						resolve(true);
-					} else {
-						// Show an error state on the button for a short time
-						$nextButton.animate('enable');
-					}
-				});
-
-				$tumblers.forEach(($, index) =>
-					addEventListener($, 'click', () => ($tumblers[index].value = Number($tumblers[index].value) + 1)),
-				);
-			});
-		} finally {
-			void this.reload(donated);
-		}
 	}
 
 	private onConfigurationChanged(e?: ConfigChangeEvent) {
@@ -281,8 +189,7 @@ export class AppManager {
 			e.key !== 'accentForegroundColor' &&
 			e.key !== 'allowEditing' &&
 			e.key !== 'background' &&
-			e.key !== 'backgroundOpacity' &&
-			e.key !== 'donated'
+			e.key !== 'backgroundOpacity'
 		) {
 			return;
 		}
@@ -293,22 +200,6 @@ export class AppManager {
 			}
 
 			if (e?.key === 'allowEditing') return;
-		}
-
-		if (e?.key == null || e?.key === 'donated') {
-			const $donateButton = document.getElementById<TextButtonElement>('donate-button')!;
-
-			this.donateDisposable?.dispose();
-
-			if (this.donated) {
-				$donateButton.style.visibility = 'hidden';
-			} else {
-				$donateButton.style.visibility = 'visible';
-
-				this.donateDisposable = addEventListener($donateButton, 'click', this.onDonateClicked.bind(this));
-			}
-
-			if (e?.key === 'donated') return;
 		}
 
 		if (e?.key == null || e?.key === 'accentBackgroundColor') {
@@ -372,7 +263,7 @@ export class AppManager {
 		if (e?.key == null || e?.key === 'background') {
 			const $background = document.getElementById<ImageElement>('background')!;
 
-			const background = configuration.get('donated') ? configuration.get('background') : 'none';
+			const background = configuration.get('background');
 			if (background === 'none') {
 				$background.style.visibility = 'hidden';
 			} else {
@@ -403,10 +294,6 @@ export class AppManager {
 		}
 
 		this.fire({ type: 'display', display: sensor });
-	}
-
-	private onDonateClicked() {
-		setTimeout(() => void this.showDonateView(), 0);
 	}
 
 	private onMouseClick(e: MouseEvent) {

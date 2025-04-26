@@ -37,7 +37,7 @@ export class TimeDisplay {
 				this.updateAlwaysOnOpacity(aodOpacity);
 			}
 		}
-
+		this.applyArabicFont();
 		this.onConfigurationChanged();
 	}
 
@@ -108,6 +108,29 @@ export class TimeDisplay {
 		}
 	}
 
+	private applyArabicFont() {
+		const fontFamily = 'Noto Sans Arabic';
+
+		const timeElements = [
+			document.getElementById<TextElement>('time-hr0'),
+			document.getElementById<TextElement>('time-hr1'),
+			document.getElementById<TextElement>('time-min0'),
+			document.getElementById<TextElement>('time-min1'),
+			document.getElementById<TextElement>('time-secs'),
+			document.getElementById<TextElement>('date-value'),
+			document.getElementById<TextElement>('day-of-week'),
+			document.getElementById<TextElement>('day-of-month'),
+			document.getElementById<TextElement>('aod-day-of-week'),
+			document.getElementById<TextElement>('aod-day-of-month'),
+		];
+
+		timeElements.forEach((element) => {
+			if (element) {
+				element.style.fontFamily = fontFamily;
+			}
+		});
+	}
+
 	private onConfigurationChanged(e?: ConfigChangeEvent) {
 		if (this.paused) return;
 		if (
@@ -175,7 +198,7 @@ export class TimeDisplay {
 
 			if (e?.key === 'showSeconds') return;
 		}
-
+		this.applyArabicFont();
 		this.render();
 	}
 

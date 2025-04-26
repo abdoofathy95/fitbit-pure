@@ -26,10 +26,9 @@ class Configuration {
 	private config: Config;
 
 	constructor() {
-		let donated = false;
+		const donated = true;
 		try {
 			this.config = fs.readFileSync('pure.settings', 'json') as Config;
-			donated = this.donated;
 
 			// // Migrate settings
 			// let migrated = false;

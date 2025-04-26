@@ -138,7 +138,6 @@ export class ActivityDisplay {
 			e?.key != null &&
 			e.key !== 'autoRotate' &&
 			e.key !== 'autoRotateInterval' &&
-			e.key !== 'donated' &&
 			e.key !== 'showActivityUnits' &&
 			e.key !== 'showDayOnDateHide'
 		) {
@@ -151,8 +150,8 @@ export class ActivityDisplay {
 			if (e?.key === 'autoRotate' || e?.key === 'autoRotateInterval') return;
 		}
 
-		if (e?.key == null || e?.key === 'donated') {
-			const visibility = appManager.donated ? 'visible' : 'hidden';
+		if (e?.key == null) {
+			const visibility = 'visible';
 
 			let i = this.activities.length;
 			while (i--) {
@@ -160,10 +159,8 @@ export class ActivityDisplay {
 			}
 
 			if (e?.key != null) {
-				requestAnimationFrame(() => this.setView(appManager.donated ? ActivityViews.Date : this.maxViews));
+				requestAnimationFrame(() => this.setView(ActivityViews.Date));
 			}
-
-			if (e?.key === 'donated') return;
 		}
 
 		if (e?.key == null || e?.key === 'showDayOnDateHide') {
@@ -383,10 +380,6 @@ export class ActivityDisplay {
 			view = ActivityViews.Date;
 		}
 
-		if (view !== ActivityViews.Date && view !== this.maxViews && !appManager.donated) {
-			view = this.maxViews;
-		}
-
 		if (vibrationPattern != null) {
 			vibration.start(vibrationPattern);
 		}
@@ -409,7 +402,7 @@ export class ActivityDisplay {
 	}
 
 	private get maxViews() {
-		return appManager.donated ? this.activities.length : this.activities.length + 1;
+		return this.activities.length;
 	}
 
 	// DEMO MODE
